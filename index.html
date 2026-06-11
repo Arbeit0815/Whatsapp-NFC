@@ -48,28 +48,6 @@
 
     <input type="text" id="name" placeholder="Dein Name">
 
-    <h3>Bitte auswählen:</h3>
-
-<label>
-    <input type="checkbox" id="mitglied">
-    Ich möchte Mitglied werden
-</label><br><br>
-
-<label>
-    <input type="checkbox" id="spende">
-    Ich möchte spenden
-</label><br><br>
-
-<label>
-    <input type="checkbox" id="helfer">
-    Ich möchte als Helfer unterstützen
-</label><br><br>
-
-<label>
-    <input type="checkbox" id="rueckruf">
-    Bitte um Rückruf
-</label><br><br>
-
     <button onclick="sendWhatsApp()">
         WhatsApp öffnen
     </button>
@@ -82,44 +60,27 @@
                 document.getElementById("name").value = savedName;
             }
         }
-function sendWhatsApp() {
-    const name = document.getElementById("name").value.trim();
 
-    if (!name) {
-        alert("Bitte gib deinen Namen ein.");
-        return;
-    }
+        function sendWhatsApp() {
+            const name = document.getElementById("name").value.trim();
 
-    let auswahl = [];
+            if (!name) {
+                alert("Bitte gib deinen Namen ein.");
+                return;
+            }
 
-    if (document.getElementById("mitglied").checked) {
-        auswahl.push("Mitgliedschaft");
-    }
+            // Namen speichern
+            localStorage.setItem("username", name);
 
-    if (document.getElementById("spende").checked) {
-        auswahl.push("Spende");
-    }
+            const nummer = "491758307971";
+            const nachricht = `Hallo hier ist ${name}`;
 
-    if (document.getElementById("helfer").checked) {
-        auswahl.push("Helfertätigkeit");
-    }
+            const whatsappURL =
+                `https://wa.me/${nummer}?text=${encodeURIComponent(nachricht)}`;
 
-    if (document.getElementById("rueckruf").checked) {
-        auswahl.push("Rückruf");
-    }
+            window.location.href = whatsappURL;
+        }
+    </script>
 
-    let nachricht = `Hallo hier ist ${name}`;
-
-    if (auswahl.length > 0) {
-        nachricht += `.\n\nIch interessiere mich für:\n• ${auswahl.join("\n• ")}`;
-    }
-
-    const nummer = "491758307971";
-
-    const whatsappURL =
-        `https://wa.me/${nummer}?text=${encodeURIComponent(nachricht)}`;
-
-    window.location.href = whatsappURL;
-}
 </body>
 </html>
