@@ -82,27 +82,44 @@
                 document.getElementById("name").value = savedName;
             }
         }
+function sendWhatsApp() {
+    const name = document.getElementById("name").value.trim();
 
-        function sendWhatsApp() {
-            const name = document.getElementById("name").value.trim();
+    if (!name) {
+        alert("Bitte gib deinen Namen ein.");
+        return;
+    }
 
-            if (!name) {
-                alert("Bitte gib deinen Namen ein.");
-                return;
-            }
+    let auswahl = [];
 
-            // Namen speichern
-            localStorage.setItem("username", name);
+    if (document.getElementById("mitglied").checked) {
+        auswahl.push("Mitgliedschaft");
+    }
 
-            const nummer = "491758307971";
-            const nachricht = `Hallo hier ist ${name}`;
+    if (document.getElementById("spende").checked) {
+        auswahl.push("Spende");
+    }
 
-            const whatsappURL =
-                `https://wa.me/${nummer}?text=${encodeURIComponent(nachricht)}`;
+    if (document.getElementById("helfer").checked) {
+        auswahl.push("Helfertätigkeit");
+    }
 
-            window.location.href = whatsappURL;
-        }
-    </script>
+    if (document.getElementById("rueckruf").checked) {
+        auswahl.push("Rückruf");
+    }
 
+    let nachricht = `Hallo hier ist ${name}`;
+
+    if (auswahl.length > 0) {
+        nachricht += `.\n\nIch interessiere mich für:\n• ${auswahl.join("\n• ")}`;
+    }
+
+    const nummer = "491758307971";
+
+    const whatsappURL =
+        `https://wa.me/${nummer}?text=${encodeURIComponent(nachricht)}`;
+
+    window.location.href = whatsappURL;
+}
 </body>
 </html>
