@@ -1,0 +1,25 @@
+# Beispiel-Konfiguration für Home Assistant (configuration.yaml)
+#
+# Die Sensoren (Letztes Ereignis, Letztes Kennzeichen, Personen, Fahrzeuge)
+# werden per MQTT-Discovery AUTOMATISCH angelegt – dafür ist hier nichts nötig.
+# Voraussetzung: Die MQTT-Integration ist in Home Assistant eingerichtet.
+#
+# Dieser rest_command erlaubt es, per Automation einen Kamera-Snapshot
+# analysieren zu lassen. IP/Port an den GPU-Vision-Container anpassen.
+
+rest_command:
+  gpu_vision_analyse_snapshot:
+    url: "http://192.168.1.20:8099/analyze_url"
+    method: POST
+    content_type: "application/json"
+    payload: >-
+      {"url": "{{ snapshot_url }}",
+       "username": "{{ username | default('') }}",
+       "password": "{{ password | default('') }}",
+       "source": "{{ source | default('kamera') }}"}
+
+  gpu_vision_analyse_datei:
+    url: "http://192.168.1.20:8099/analyze_path"
+    method: POST
+    content_type: "application/json"
+    payload: '{"path": "{{ pfad }}"}'
