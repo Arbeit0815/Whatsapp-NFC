@@ -1,0 +1,11 @@
+# PyTorch mit CUDA wird im Dockerfile separat installiert
+ultralytics>=8.2
+fast-alpr>=0.2
+onnxruntime-gpu>=1.17
+opencv-python-headless>=4.9
+fastapi>=0.110
+uvicorn[standard]>=0.29
+paho-mqtt>=2.0
+requests>=2.31
+anyio>=4.0
+python-multipart>=0.0.9

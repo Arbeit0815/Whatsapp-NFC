@@ -1,0 +1,33 @@
+services:
+  gpu-vision:
+    build: .
+    container_name: ha-gpu-vision
+    restart: unless-stopped
+    ports:
+      - "8099:8099"
+    environment:
+      # --- MQTT-Verbindung zu Home Assistant ---
+      MQTT_HOST: "192.168.1.10"        # IP deines MQTT-Brokers (meist die HA-Instanz)
+      MQTT_PORT: "1883"
+      MQTT_USER: "mqtt_user"
+      MQTT_PASSWORD: "mqtt_passwort"
+      # --- Erkennung ---
+      YOLO_MODEL: "yolov8m.pt"          # yolov8n.pt = schneller, yolov8l.pt = genauer
+      DETECTION_CONFIDENCE: "0.40"
+      PLATE_CONFIDENCE: "0.35"
+      # --- Ordnerüberwachung ---
+      WATCH_ENABLED: "true"
+      WATCH_DIR: "/watch"
+      PROCESSED_DIR: ""                 # z. B. "/watch/verarbeitet" zum Verschieben
+    volumes:
+      - ./models:/models                # Modell-Cache (spart Downloads bei Neustart)
+      - ./watch:/watch                  # hier Bilder/Videos ablegen -> automatische Analyse
+      # Optional: Frigate-Clips direkt einbinden (dann /analyze_path nutzbar):
+      # - /pfad/zu/frigate/media:/media/frigate:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

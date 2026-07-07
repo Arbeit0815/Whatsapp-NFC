@@ -1,0 +1,47 @@
+# Beispiel-Automationen für Home Assistant
+
+# 1) Bei Bewegung: Kamera-Snapshot analysieren lassen.
+#    Das Ergebnis erscheint danach in sensor.gpu_vision_analyzer_letztes_ereignis
+- alias: "GPU Vision: Snapshot bei Bewegung analysieren"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.einfahrt_bewegung   # anpassen
+      to: "on"
+  action:
+    - service: rest_command.gpu_vision_analyse_snapshot
+      data:
+        # Snapshot-URL deiner Kamera (RTSP-Kameras: Snapshot-URL des Herstellers
+        # oder die HA-Kamera-Proxy-URL mit Long-Lived-Token verwenden)
+        snapshot_url: "http://192.168.1.30/snapshot.jpg"
+        username: "kamera_user"
+        password: "kamera_passwort"
+        source: "einfahrt"
+
+# 2) Benachrichtigung mit der Textbeschreibung, sobald ein neues Ergebnis vorliegt
+- alias: "GPU Vision: Ereignis-Benachrichtigung"
+  trigger:
+    - platform: mqtt
+      topic: gpu_vision/event
+  condition:
+    - condition: template
+      value_template: "{{ trigger.payload_json.persons > 0 or trigger.payload_json.vehicles > 0 }}"
+  action:
+    - service: notify.mobile_app_mein_handy       # anpassen
+      data:
+        title: "Kamera-Ereignis"
+        message: "{{ trigger.payload_json.description }}"
+
+# 3) Tor öffnen, wenn ein bekanntes Kennzeichen erkannt wird
+- alias: "GPU Vision: Tor bei bekanntem Kennzeichen öffnen"
+  trigger:
+    - platform: mqtt
+      topic: gpu_vision/event
+  condition:
+    - condition: template
+      value_template: >-
+        {{ trigger.payload_json.plates | map(attribute='text')
+           | select('in', ['BAB1234', 'MXY567']) | list | count > 0 }}
+  action:
+    - service: cover.open_cover
+      target:
+        entity_id: cover.einfahrtstor             # anpassen
