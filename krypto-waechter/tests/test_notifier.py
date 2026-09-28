@@ -46,7 +46,7 @@ class ToastTest(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform == "win32", "nur unter Windows")
     def test_powershell_can_build_the_toast(self):
-        """Lädt die Windows-Runtime-Typen und prüft das XML – ohne die Meldung wirklich anzuzeigen."""
+        # Lädt die Windows-Runtime-Typen und prüft das XML – ohne die Meldung wirklich anzuzeigen
         xml = notifier.build_toast_xml("Test äöü € 📈", "Kurs: 1.234,56 €\n24 Std: +5,00 %")
         ok, error = notifier.run_powershell(notifier.build_toast_script(xml, notifier.POWERSHELL_APP_ID, show=False))
         self.assertTrue(ok, error)

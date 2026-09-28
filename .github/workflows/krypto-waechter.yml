@@ -18,9 +18,9 @@ jobs:
       run:
         working-directory: krypto-waechter
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -53,7 +53,7 @@ jobs:
           Copy-Item dist/Krypto-Waechter.exe paket/
           Copy-Item README.md paket/ANLEITUNG.md
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: Krypto-Waechter-Windows
           path: krypto-waechter/paket/

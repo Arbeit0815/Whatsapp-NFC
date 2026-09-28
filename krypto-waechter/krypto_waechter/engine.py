@@ -271,12 +271,13 @@ class Engine:
         alerts = []
         price, currency = quote.price, quote.currency
         above, below = coin.get("alarm_above"), coin.get("alarm_below")
-        if above and self.latch.check(f"{quote.key}|above", now, active=price >= above,
+        # Der Zielpreis gehört zur Kennung: ein geänderter Kursalarm ist sofort wieder scharf
+        if above and self.latch.check(f"{quote.key}|above|{above}", now, active=price >= above,
                                       rearm=price < above * 0.99, cooldown=cooldown):
             alerts.append(Alert(now, "target", "up", quote.key,
                                 f"{quote.label} über {format_price(above, currency)}",
                                 f"Kursziel erreicht – aktueller Kurs: {format_price(price, currency)}", icon="🎯"))
-        if below and self.latch.check(f"{quote.key}|below", now, active=price <= below,
+        if below and self.latch.check(f"{quote.key}|below|{below}", now, active=price <= below,
                                       rearm=price > below * 1.01, cooldown=cooldown):
             alerts.append(Alert(now, "target", "down", quote.key,
                                 f"{quote.label} unter {format_price(below, currency)}",

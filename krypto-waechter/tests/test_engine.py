@@ -148,6 +148,13 @@ class EngineTest(unittest.TestCase):
         self.assertEqual(titles, ["Bitcoin (BIT) über 110,00 €", "Bitcoin (BIT) über 110,00 €",
                                   "Bitcoin (BIT) unter 90,00 €"])
 
+    def test_changed_price_target_is_armed_again(self):
+        cfg = make_config(coins=[coin(alarm_above=110)], move_rules=[], scanner={"enabled": False})
+        self.assertEqual(len(self.run_engine(cfg, [quote(price=111)], T0).alerts), 1)
+        cfg["coins"][0]["alarm_above"] = 115
+        self.assertEqual(self.run_engine(cfg, [quote(price=112)], T0 + 60).alerts, [])
+        self.assertEqual(len(self.run_engine(cfg, [quote(price=116)], T0 + 120).alerts), 1)
+
     def test_portfolio_values(self):
         cfg = make_config(coins=[coin(amount=0.5, buy_price=40000), coin("ethereum", amount=2),
                                  coin("solana", amount=1, buy_price=100)], move_rules=[], scanner={"enabled": False},
