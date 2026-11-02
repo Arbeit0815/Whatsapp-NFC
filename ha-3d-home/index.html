@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1724">
+  <title>Smart Home 3D</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.min.js",
+        "three/addons/": "./vendor/three/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand"><span class="logo">🏠</span><span class="brand-text">Smart Home 3D</span></div>
+      <nav class="floors" id="floorButtons" aria-label="Etagen"></nav>
+      <div class="actions">
+        <span id="status" class="status" title="Verbindungsstatus"><i></i><span>…</span></span>
+        <button id="btnHome" class="icon-btn" type="button" title="Ganzes Haus anzeigen">⌂</button>
+        <button id="btnSettings" class="icon-btn" type="button" title="Einstellungen">⚙</button>
+      </div>
+    </header>
+
+    <main id="viewport"></main>
+
+    <aside id="panel" class="panel">
+      <div class="panel-grip" id="panelGrip"></div>
+      <div class="panel-head">
+        <button id="btnBack" class="icon-btn" type="button" title="Zurück zur Übersicht">‹</button>
+        <div class="panel-title">
+          <h2 id="panelTitle">Übersicht</h2>
+          <div id="panelSub" class="panel-sub"></div>
+        </div>
+        <button id="btnEdit" class="icon-btn" type="button" title="Geräte zuordnen">✎</button>
+      </div>
+      <div id="panelBody" class="panel-body"></div>
+    </aside>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <dialog id="settings" class="settings">
+    <form method="dialog" class="settings-inner">
+      <header class="settings-head">
+        <h2>Einstellungen</h2>
+        <button class="icon-btn" value="close" title="Schließen">✕</button>
+      </header>
+      <nav class="tabs" role="tablist">
+        <button type="button" class="tab active" data-tab="conn">Verbindung</button>
+        <button type="button" class="tab" data-tab="rooms">Räume</button>
+        <button type="button" class="tab" data-tab="view">Darstellung</button>
+        <button type="button" class="tab" data-tab="io">Import/Export</button>
+      </nav>
+
+      <section class="tab-page active" data-page="conn">
+        <div class="field">
+          <span>Modus</span>
+          <div class="seg">
+            <label><input type="radio" name="mode" value="ha"> Home Assistant</label>
+            <label><input type="radio" name="mode" value="demo"> Demo</label>
+          </div>
+        </div>
+        <label class="field">
+          <span>Home-Assistant-Adresse</span>
+          <input id="cfgUrl" type="url" placeholder="z. B. http://homeassistant.local:8123" autocomplete="url">
+          <small>Leer lassen, wenn diese Seite direkt von Home Assistant ausgeliefert wird (/local/…).</small>
+        </label>
+        <label class="field">
+          <span>Langlebiges Zugriffstoken</span>
+          <input id="cfgToken" type="password" placeholder="eyJhbGciOi…" autocomplete="off" spellcheck="false">
+          <small>In Home Assistant: Profil → Sicherheit → „Langlebige Zugriffstoken" → Token erstellen.
+            Das Token wird nur in diesem Browser gespeichert.</small>
+        </label>
+        <div class="btn-row">
+          <button type="button" id="btnConnect" class="btn primary">Verbinden</button>
+        </div>
+        <p id="connInfo" class="hint"></p>
+      </section>
+
+      <section class="tab-page" data-page="rooms">
+        <div class="sub-head">
+          <h3>Etagen</h3>
+          <button type="button" id="btnAddFloor" class="btn small">+ Etage</button>
+        </div>
+        <div id="floorList" class="floor-list"></div>
+        <div class="sub-head">
+          <h3>Räume</h3>
+          <div class="btn-row">
+            <button type="button" id="btnFromAreas" class="btn small" title="Räume automatisch aus den Bereichen in Home Assistant erzeugen">Aus HA-Bereichen erzeugen</button>
+            <button type="button" id="btnAddRoom" class="btn small primary">+ Raum</button>
+          </div>
+        </div>
+        <p class="hint">Maße in Metern. X = von links, Z = von vorne. „HA-Bereich" ordnet alle Geräte dieses Bereichs automatisch zu.</p>
+        <div class="table-wrap">
+          <table class="room-table">
+            <thead><tr><th>Name</th><th>Etage</th><th>X</th><th>Z</th><th>Breite</th><th>Tiefe</th><th>HA-Bereich</th><th>Farbe</th><th></th></tr></thead>
+            <tbody id="roomRows"></tbody>
+          </table>
+        </div>
+        <datalist id="areaList"></datalist>
+      </section>
+
+      <section class="tab-page" data-page="view">
+        <label class="field range">
+          <span>Wandhöhe <output id="outWallHeight"></output></span>
+          <input id="cfgWallHeight" type="range" min="0.3" max="3" step="0.1">
+        </label>
+        <label class="field range">
+          <span>Wand-Deckkraft <output id="outWallOpacity"></output></span>
+          <input id="cfgWallOpacity" type="range" min="0.05" max="1" step="0.05">
+        </label>
+        <label class="field range">
+          <span>Etagenhöhe <output id="outFloorHeight"></output></span>
+          <input id="cfgFloorHeight" type="range" min="2.6" max="8" step="0.1">
+        </label>
+        <label class="check"><input id="cfgShowAll" type="checkbox"> Alle Geräte-Symbole immer anzeigen</label>
+        <label class="check"><input id="cfgLabels" type="checkbox"> Raumnamen anzeigen</label>
+      </section>
+
+      <section class="tab-page" data-page="io">
+        <p class="hint">Grundriss (Etagen, Räume, Zuordnungen) als JSON. Token und Adresse sind nicht enthalten.
+          Eine Datei <code>layout.json</code> neben der <code>index.html</code> wird beim ersten Start automatisch geladen.</p>
+        <textarea id="cfgJson" spellcheck="false" rows="14"></textarea>
+        <div class="btn-row wrap">
+          <button type="button" id="btnApplyJson" class="btn primary">Übernehmen</button>
+          <button type="button" id="btnDownload" class="btn">Als Datei speichern</button>
+          <label class="btn">Datei laden<input id="fileImport" type="file" accept=".json,application/json" hidden></label>
+          <button type="button" id="btnReset" class="btn danger">Beispielhaus wiederherstellen</button>
+        </div>
+      </section>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
